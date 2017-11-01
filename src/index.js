@@ -1,32 +1,40 @@
-import React, { Component, PropTypes } from 'react'
-import { Modal, View, ListView, TouchableOpacity, Text, TextInput } from 'react-native'
+import React, { Component, PropTypes } from "react";
+import {
+  Modal,
+  View,
+  ListView,
+  TouchableOpacity,
+  Text,
+  TextInput
+} from "react-native";
 
-
-import styles from './styles'
-
+import styles from "./styles";
 
 export default class ModalFilterPicker extends Component {
-  constructor (props, ctx) {
-    super(props, ctx)
+  constructor(props, ctx) {
+    super(props, ctx);
 
     this.state = {
-      filter: '',
+      filter: "",
       ds: new ListView.DataSource({
-        rowHasChanged: (r1, r2) => r1.key !== r2.key
+        rowHasChanged: (r1, r2) => r1.id !== r2.id
       }).cloneWithRows(props.options)
-    }
+    };
   }
 
-  componentWillReceiveProps (newProps) {
-    if ((!this.props.visible && newProps.visible) || (this.props.options !== newProps.options)) {
+  componentWillReceiveProps(newProps) {
+    if (
+      (!this.props.visible && newProps.visible) ||
+      this.props.options !== newProps.options
+    ) {
       this.setState({
-        filter: '',
-        ds: this.state.ds.cloneWithRows(newProps.options),
-      })
+        filter: "",
+        ds: this.state.ds.cloneWithRows(newProps.options)
+      });
     }
   }
 
-  render () {
+  render() {
     const {
       title,
       titleTextStyle,
@@ -35,15 +43,20 @@ export default class ModalFilterPicker extends Component {
       renderList,
       renderCancelButton,
       visible,
-      modal,
-    } = this.props
+      modal
+    } = this.props;
 
-    const renderedTitle = (!title) ? null : (
+    const renderedTitle = !title ? null : (
       <Text style={titleTextStyle || styles.titleTextStyle}>{title}</Text>
-    )
+    );
 
     return (
-      <Modal {...modal} visible={visible} supportedOrientations={['portrait', 'landscape']}>
+      <Modal
+        {...modal}
+        visible={visible}
+        onRequestClose={() => null}
+        supportedOrientations={["portrait", "landscape"]}
+      >
         <View style={overlayStyle || styles.overlay}>
           {renderedTitle}
           {(renderList || this.renderList)()}
@@ -52,7 +65,7 @@ export default class ModalFilterPicker extends Component {
           </View>
         </View>
       </Modal>
-    )
+    );
   }
 
   renderList = () => {
@@ -64,10 +77,12 @@ export default class ModalFilterPicker extends Component {
       placeholderTextColor,
       filterTextInputContainerStyle,
       filterTextInputStyle
-    } = this.props
+    } = this.props;
 
-    const filter = (!showFilter) ? null : (
-      <View style={filterTextInputContainerStyle || styles.filterTextInputContainer}>
+    const filter = !showFilter ? null : (
+      <View
+        style={filterTextInputContainerStyle || styles.filterTextInputContainer}
+      >
         <TextInput
           onChangeText={this.onFilterChange}
           autoCorrect={false}
@@ -76,39 +91,37 @@ export default class ModalFilterPicker extends Component {
           underlineColorAndroid={androidUnderlineColor}
           placeholderTextColor={placeholderTextColor}
           placeholder={placeholderText}
-          style={filterTextInputStyle || styles.filterTextInput} />
+          style={filterTextInputStyle || styles.filterTextInput}
+        />
       </View>
-    )
+    );
 
     return (
       <View style={listContainerStyle || styles.listContainer}>
         {filter}
         {this.renderOptionList()}
       </View>
-    )
-  }
+    );
+  };
 
   renderOptionList = () => {
-    const {
-      noResultsText,
-      listViewProps,
-    } = this.props
+    const { noResultsText, listViewProps } = this.props;
 
-    const { ds } = this.state
+    const { ds } = this.state;
 
     if (1 > ds.getRowCount()) {
       return (
         <ListView
           enableEmptySections={false}
           {...listViewProps}
-          dataSource={ds.cloneWithRows([{ key: '_none' }])}
+          dataSource={ds.cloneWithRows([{ id: "_none" }])}
           renderRow={() => (
             <View style={styles.noResults}>
               <Text style={styles.noResultsText}>{noResultsText}</Text>
             </View>
           )}
         />
-      )
+      );
     } else {
       return (
         <ListView
@@ -117,77 +130,82 @@ export default class ModalFilterPicker extends Component {
           dataSource={ds}
           renderRow={this.renderOption}
         />
-      )
+      );
     }
-  }
+  };
 
-  renderOption = (rowData) => {
+  renderOption = rowData => {
     const {
       selectedOption,
       renderOption,
-        optionTextStyle,
+      optionTextStyle,
       selectedOptionTextStyle
-    } = this.props
+    } = this.props;
 
-    const { key, label } = rowData
+    const { id, name } = rowData;
 
-    let style = styles.optionStyle
-    let textStyle = optionTextStyle||styles.optionTextStyle
+    let style = styles.optionStyle;
+    let textStyle = optionTextStyle || styles.optionTextStyle;
 
-    if (key === selectedOption) {
-      style = styles.selectedOptionStyle
-      textStyle = selectedOptionTextStyle ||styles.selectedOptionTextStyle
+    if (id === selectedOption) {
+      style = styles.selectedOptionStyle;
+      textStyle = selectedOptionTextStyle || styles.selectedOptionTextStyle;
     }
 
     if (renderOption) {
-      return renderOption(rowData, key === selectedOption)
+      return renderOption(rowData, id === selectedOption);
     } else {
       return (
-        <TouchableOpacity activeOpacity={0.7}
+        <TouchableOpacity
+          activeOpacity={0.7}
           style={style}
-          onPress={() => this.props.onSelect(key)}
+          onPress={() => this.props.onSelect(id, name)}
         >
-          <Text style={textStyle}>{label}</Text>
+          <Text style={textStyle}>{name}</Text>
         </TouchableOpacity>
-      )
+      );
     }
-  }
+  };
 
   renderCancelButton = () => {
     const {
       cancelButtonStyle,
       cancelButtonTextStyle,
       cancelButtonText
-    } = this.props
+    } = this.props;
 
     return (
-      <TouchableOpacity onPress={this.props.onCancel}
+      <TouchableOpacity
+        onPress={this.props.onCancel}
         activeOpacity={0.7}
         style={cancelButtonStyle || styles.cancelButton}
       >
-        <Text style={cancelButtonTextStyle || styles.cancelButtonText}>{cancelButtonText}</Text>
+        <Text style={cancelButtonTextStyle || styles.cancelButtonText}>
+          {cancelButtonText}
+        </Text>
       </TouchableOpacity>
-    )
-  }
+    );
+  };
 
-  onFilterChange = (text) => {
-    const { options } = this.props
+  onFilterChange = text => {
+    const { options } = this.props;
 
-    const filter = text.toLowerCase()
+    const filter = text.toLowerCase();
 
     // apply filter to incoming data
-    const filtered = (!filter.length)
+    const filtered = !filter.length
       ? options
-      : options.filter(({ searchKey, label, key }) => (
-        0 <= label.toLowerCase().indexOf(filter) ||
-          (searchKey && 0 <= searchKey.toLowerCase().indexOf(filter))
-      ))
+      : options.filter(
+          ({ searchKey, name, id }) =>
+            0 <= name.toLowerCase().indexOf(filter) ||
+            (searchKey && 0 <= searchKey.toLowerCase().indexOf(filter))
+        );
 
     this.setState({
       filter: text.toLowerCase(),
       ds: this.state.ds.cloneWithRows(filtered)
-    })
-  }
+    });
+  };
 }
 
 ModalFilterPicker.propTypes = {
@@ -216,16 +234,16 @@ ModalFilterPicker.propTypes = {
   titleTextStyle: PropTypes.any,
   overlayStyle: PropTypes.any,
   listContainerStyle: PropTypes.any,
-  optionTextStyle:PropTypes.any,
-  selectedOptionTextStyle:PropTypes.any,
-}
+  optionTextStyle: PropTypes.any,
+  selectedOptionTextStyle: PropTypes.any
+};
 
 ModalFilterPicker.defaultProps = {
-  placeholderText: 'Filter...',
-  placeholderTextColor: '#ccc',
-  androidUnderlineColor: 'rgba(0,0,0,0)',
-  cancelButtonText: 'Cancel',
-  noResultsText: 'No matches',
+  placeholderText: "Filter...",
+  placeholderTextColor: "#ccc",
+  androidUnderlineColor: "rgba(0,0,0,0)",
+  cancelButtonText: "Cancel",
+  noResultsText: "No matches",
   visible: true,
-  showFilter: true,
-}
+  showFilter: true
+};
